@@ -1,0 +1,60 @@
+# Environment variables (содержат секретные данные)
+.env
+/app/.env
+
+# IDE project files
+.idea
+.vscode
+nbproject
+.buildpath
+.project
+.settings
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Composer
+/app/vendor/
+composer.phar
+composer.lock
+
+# phpunit
+phpunit.phar
+/app/phpunit.xml
+
+# Testing
+/app/tests/_output/*
+/app/tests/_support/_generated
+
+# Vagrant folder
+/.vagrant
+
+# Yii2 runtime files
+/app/runtime/*
+!/app/runtime/.gitkeep
+
+# Yii2 web assets
+/app/web/assets/*
+!/app/web/assets/.gitkeep
+
+# User uploads
+/app/web/uploads/*
+!/app/web/uploads/books/
+/app/web/uploads/books/*
+!/app/web/uploads/books/.gitkeep
+
+# Logs
+*.log
+
+# Backup files
+*.sql
+*.gz
+*.zip
+backup/
+
+# Docker
+/docker/mysql/data/
+
+# NPM
+node_modules

@@ -1,0 +1,75 @@
+# Docker Compose для Yii2 Books Catalog
+# Использует стандартные имена сервисов для удобства
+
+services:
+  # PHP 8.3 FPM Service
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    environment:
+      - PHP_IDE_CONFIG=serverName=yii2-books
+      - APP_ENV=${APP_ENV:-development}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-yii2_books}
+      - DB_USER=${DB_USER:-yii2}
+      - DB_PASSWORD=${DB_PASSWORD:-yii2}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "${NGINX_PORT:-8080}:80"
+    volumes:
+      - ./app:/app:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # MySQL 8.0 Database
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-yii2_books}
+      MYSQL_USER: ${DB_USER:-yii2}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-yii2}
+      TZ: ${TIMEZONE:-Europe/Moscow}
+    ports:
+      - "${DB_EXTERNAL_PORT:-3307}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    networks:
+      - app-network
+    restart: unless-stopped
+
+# Persistent Volumes
+volumes:
+  db_data:
+    driver: local
+
+# Network Configuration
+networks:
+  app-network:
+    driver: bridge
